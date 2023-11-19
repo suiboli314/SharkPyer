@@ -129,7 +129,7 @@ class NetworkInterfaceApp(QMainWindow):
 
     def start_background_task(self):
         if self.task is None or not self.task.isRunning():
-            self.task = LongRunningTask()
+            self.task = LongRunningTask(interface=self.combo_box.currentText())
             self.task.update_signal.connect(self.print_info)
             self.task.start()
 
@@ -148,7 +148,7 @@ class NetworkInterfaceApp(QMainWindow):
                 self.table_widget.clear()
                 self.table_widget.setRowCount(len(info_data))
                 self.table_widget.setColumnCount(2)
-                self.table_widget.setFrameShape(QTableWidget.NoFrame)
+                self.table_widget.setFrameShape(QFrame.Shape.NoFrame)
                 self.table_widget.setContentsMargins(0, 0, 0, 0)
 
                 # 将信息添加到表格中
@@ -182,6 +182,10 @@ class NetworkInterfaceApp(QMainWindow):
 class LongRunningTask(QThread):
     update_signal = pyqtSignal(requests.models.Response)
 
+    def __init__(self, interface):
+        super().__init__()
+        self.interface = interface
+
     def run(self):
         # 获取本机的IP地址
         def get_local_ip_address():
@@ -198,7 +202,7 @@ class LongRunningTask(QThread):
         local_ip = get_local_ip_address()
 
         # 监听网络接口
-        capture = pyshark.LiveCapture(interface='en0')
+        capture = pyshark.LiveCapture(interface=self.interface)
 
         # 设置捕获过滤器（可选）
         capture.set_debug()
