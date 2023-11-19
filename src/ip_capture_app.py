@@ -18,17 +18,16 @@ import requests
 class NetworkInterfaceApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.task = None    # Task initialization
-        self.init_ui()      # Initialize the user interface
-    
-    
+        self.task = None  # Task initialization
+        self.init_ui()  # Initialize the user interface
+
     # Function to indicate support for secure restorable state (not used)
     def applicationSupportsSecureRestorableState(self):
         return True
 
     # Function to initialize the user interface
     def init_ui(self):
-        self.setWindowTitle('Select Network Interface')
+        self.setWindowTitle("Select Network Interface")
 
         # Create a stacked widget to manage pages
 
@@ -38,10 +37,10 @@ class NetworkInterfaceApp(QMainWindow):
         page1 = QWidget()
         layout1 = QVBoxLayout(page1)
         layout1.setContentsMargins(5, 5, 5, 5)  # Set layout margins
-        layout1.setSpacing(0)    # Set layout spacing
+        layout1.setSpacing(0)  # Set layout spacing
 
         # Add a label for selecting network interfaces
-        label = QLabel('Select network interface:', self)
+        label = QLabel("Select network interface:", self)
         label.setStyleSheet("QComboBox { border: 2px solid blue; }")
 
         # label.setAlignment(Qt.AlignCenter)  # 设置标签文本居中对齐
@@ -56,7 +55,7 @@ class NetworkInterfaceApp(QMainWindow):
         layout1.addWidget(self.combo_box)
 
         # Add a confirm button
-        confirm_button = QPushButton('Confirm', self)
+        confirm_button = QPushButton("Confirm", self)
         confirm_button.clicked.connect(self.next_page)
         layout1.addWidget(confirm_button)
 
@@ -69,13 +68,12 @@ class NetworkInterfaceApp(QMainWindow):
         layout2 = QVBoxLayout()
         # layout2.setContentsMargins(0, 0, 0, 0)  # 
         # layout2.setSpacing(0)  
-        self.selection_label = QLabel('The Network Interface You Selected', self)
+        self.selection_label = QLabel("The Network Interface You Selected", self)
         layout2.addWidget(self.selection_label)
         page2.setLayout(layout2)
         self.stacked_widget.addWidget(page2)
 
-
-        # self.info_label = QLabel('', self)
+        # self.info_label = QLabel("", self)
         # layout2.addWidget(self.info_label)
 
         # Create a table widget for displaying information
@@ -83,7 +81,7 @@ class NetworkInterfaceApp(QMainWindow):
         self.table_widget.setColumnCount(2)  # 设置表格列数
 
         # Configure table properties
-        
+
         self.table_widget.setFrameStyle(QFrame.Shape.NoFrame)
         self.table_widget.setContentsMargins(0, 0, 0, 0)
         sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
@@ -96,7 +94,7 @@ class NetworkInterfaceApp(QMainWindow):
         layout2.addWidget(self.table_widget)
 
         # Add a button to initiate background task
-        get_info_button = QPushButton('Get Information', self)
+        get_info_button = QPushButton("Get Information", self)
         get_info_button.clicked.connect(self.start_background_task)
         layout2.addWidget(get_info_button)
 
@@ -105,8 +103,8 @@ class NetworkInterfaceApp(QMainWindow):
 
         # Set the main window layout
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)  
-        layout.setSpacing(0)  
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(0)
         layout.addWidget(self.stacked_widget)
         central_widget = QWidget(parent=None)
         central_widget.setLayout(layout)
@@ -120,7 +118,7 @@ class NetworkInterfaceApp(QMainWindow):
     # Function to move to the next page and display selected interface
     def next_page(self):
         selected_interface = self.combo_box.currentText()
-        self.selection_label.setText(f'Current Interface: {selected_interface}')
+        self.selection_label.setText(f"Current Interface: {selected_interface}")
         self.stacked_widget.setCurrentIndex(1)
 
     # Function to start the background task
@@ -129,6 +127,7 @@ class NetworkInterfaceApp(QMainWindow):
             self.task = LongRunningTask(interface=self.combo_box.currentText())
             self.task.update_signal.connect(self.print_info)
             self.task.start()
+
     # Function to handle the response and populate the table widget
     def print_info(self, response):
         # Handle different response scenarios
@@ -167,7 +166,7 @@ class NetworkInterfaceApp(QMainWindow):
                     self.table_widget.setItem(row, 0, key_item)
                     self.table_widget.setItem(row, 1, value_item)
             else:
-            # Display error message in table
+                # Display error message in table
                 self.table_widget.clear()
                 self.table_widget.setRowCount(1)
                 self.table_widget.setItem(0, 0, QTableWidgetItem("Unable to fetch location information"))
@@ -204,15 +203,14 @@ class LongRunningTask(QThread):
         # live capture network flow
         capture = pyshark.LiveCapture(interface=self.interface)
 
-
         capture.set_debug()
 
         count = 0
         # capture packets
         for packet in capture.sniff_continuously():
-            if 'UDP' in packet and '02:00:48' in packet['UDP'].payload and packet['IP'].src == local_ip:
-                # print(packet['IP'].dst)
-                dst = packet['IP'].dst
+            if "UDP" in packet and "02:00:48" in packet["UDP"].payload and packet["IP"].src == local_ip:
+                # print(packet["IP"].dst)
+                dst = packet["IP"].dst
                 break
 
         # URL for location 
@@ -227,10 +225,10 @@ def get_pid(process_name):
     ret = set()
     for proc in psutil.process_iter():
         if process_name in proc.name():
-            ret.add(proc.pid) 
-            #break
+            ret.add(proc.pid)
     print("Pid (", process_name, "):", ret)
     return ret
+
 
 def get_used_port_by_pid(pid):
     connections = psutil.net_connections()
@@ -239,16 +237,15 @@ def get_used_port_by_pid(pid):
         if con.raddr != tuple():
             if con.pid in pid:
                 ports.append((con.raddr.port, con.status))
-        
+
         if con.laddr != tuple():
             if con.pid in pid:
                 ports.append((con.laddr.port, con.status))
-                
+
     print("port (", pid, "):", ports)
 
 
-
-if __name__ == '__main__':
+if __name__ == "__main__":
     pid = get_pid("WeChat")
     get_used_port_by_pid(pid)
 
