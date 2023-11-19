@@ -1,6 +1,6 @@
 # Project: IP Mask
 
-# Team 4 Members: Dongxing Zhang, Chenjie Wu, Mingfu Huang, Junhao Hao
+# Team 4 Members: Dongxin Zhang, Chenjie Wu, Mingfu Huang, Junhao Hao
 
 # Introduction:
 # This program aims to enhance user privacy and security by intercepting server responses and dynamically altering the originating IP address before it leaves the local machine. 
@@ -8,9 +8,18 @@
 # The implementation of this IP masking mechanism is designed to be efficient, seamless, and responsive, ensuring that users can browse the internet or interact with online services while keeping their true IP address hidden from prying eyes. 
 
 # Partitions:
+# Analysis - Everyone
+# Algorithm Design - Dongxin Zhang, Chenjie Wu
+# Back-End Coding - Mingfu Huang, Junhao Hao
+# Front-End Design - Mingfu Huang, Junhao Hao
+# Front-End Coding - Dongxin Zhang, Chenjie Wu
+# Debug - Everyone
 
 # Progress Date:
-
+# BrainStorm: 11/01 - 11/04
+# UI Design: 11/05 - 11/09
+# Database Schema: 11/08 - 11/12
+# Implement alogrithm to analyze traffic patterns: 11/13 - 11/19
 
 import asyncio
 import sys
