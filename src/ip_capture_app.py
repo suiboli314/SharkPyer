@@ -224,11 +224,11 @@ class LongRunningTask(QThread):
 
 
 def get_pid(process_name):
-    ret = None
+    ret = set()
     for proc in psutil.process_iter():
         if process_name in proc.name():
-            ret = proc.pid
-            break
+            ret.add(proc.pid) 
+            #break
     print("Pid (", process_name, "):", ret)
     return ret
 
@@ -237,11 +237,13 @@ def get_used_port_by_pid(pid):
     ports = []
     for con in connections:
         if con.raddr != tuple():
-            if con.pid == pid:
+            if con.pid in pid:
                 ports.append((con.raddr.port, con.status))
+        
         if con.laddr != tuple():
-            if con.pid == pid:
+            if con.pid in pid:
                 ports.append((con.laddr.port, con.status))
+                
     print("port (", pid, "):", ports)
 
 
