@@ -256,27 +256,25 @@ def get_pid(process_name):
 
 
 def new_port_ip_rule(addr, ports, ips):
-    print("ip:", addr.ip, "\t ports:", ports, "\tips:", ips)
     return addr.ip not in ips or addr.port not in ports
 
+def fit_rule(addr, con, ports, ips):
+    # print("port:", addr.port, "\tstatus:", con.status, "\tip:", addr.ip)
+    if int(addr.port) > 4000:
+        ports.add(addr.port)
+    if not addr.ip.startswith("10."):
+        ips.add(addr.ip)
 
 def get_used_port_by_pid(pid, ports: set, ips: set):
     connections = psutil.net_connections()
     for con in connections:
         if con.pid in pid:
             if con.raddr != tuple() and new_port_ip_rule(con.raddr, ports, ips):
-                print("port:", con.raddr.port, "\tstatus:", con.status, "\tip:", con.raddr.ip)
-                if int(con.raddr.port) > 4000:
-                    ports.add(con.raddr.port)
-                ips.add(con.raddr.ip)
-            elif con.laddr != tuple() and new_port_ip_rule(con.laddr, ports, ips):
-                print("port:", con.laddr.port, "\tstatus:", con.status, "\tip:", con.laddr.ip)
-                if int(con.laddr.port) > 4000:
-                    ports.add(con.laddr.port)
-                ips.add(con.laddr.ip)
-            else:
-                print("con:", con)
-
+                fit_rule(con.raddr, con, ports, ips)
+            if con.laddr != tuple() and new_port_ip_rule(con.laddr, ports, ips):
+                fit_rule(con.laddr, con, ports, ips)
+            if con.laddr == tuple() and con.raddr == tuple():
+                print("con: ", con)
     # print("port (", pid, "):", ports)
     # print("ips:", ips)
 
