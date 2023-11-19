@@ -123,12 +123,6 @@ class NetworkInterfaceApp(QMainWindow):
         self.selection_label.setText(f'Current Interface: {selected_interface}')
         self.stacked_widget.setCurrentIndex(1)
 
-    # Asynchronous function to get information
-    async def get_information_async(self):
-        loop = asyncio.get_event_loop()
-        info_text = await loop.run_in_executor(None, self.get_information)
-        self.info_label.setText(info_text)  
-        
     # Function to start the background task
     def start_background_task(self):
         if self.task is None or not self.task.isRunning():
@@ -229,8 +223,33 @@ class LongRunningTask(QThread):
         self.update_signal.emit(response)
 
 
-# Application entry point
+def get_pid(process_name):
+    ret = None
+    for proc in psutil.process_iter():
+        if process_name in proc.name():
+            ret = proc.pid
+            break
+    print("Pid (", process_name, "):", ret)
+    return ret
+
+def get_used_port_by_pid(pid):
+    connections = psutil.net_connections()
+    ports = []
+    for con in connections:
+        if con.raddr != tuple():
+            if con.pid == pid:
+                ports.append((con.raddr.port, con.status))
+        if con.laddr != tuple():
+            if con.pid == pid:
+                ports.append((con.laddr.port, con.status))
+    print("port (", pid, "):", ports)
+
+
+
 if __name__ == '__main__':
+    pid = get_pid("WeChat")
+    get_used_port_by_pid(pid)
+
     app = QApplication(sys.argv)
     window = NetworkInterfaceApp()
     window.show()
