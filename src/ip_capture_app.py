@@ -1,3 +1,17 @@
+# Project: IP Mask
+
+# Team 4 Members: Dongxing Zhang, Chenjie Wu, Mingfu Huang, Junhao Hao
+
+# Introduction:
+# This program aims to enhance user privacy and security by intercepting server responses and dynamically altering the originating IP address before it leaves the local machine. 
+# By doing so, the program ensures that sensitive information about the user's actual IP address is concealed from external entities, providing anonymity and safeguarding against potential online threats. 
+# The implementation of this IP masking mechanism is designed to be efficient, seamless, and responsive, ensuring that users can browse the internet or interact with online services while keeping their true IP address hidden from prying eyes. 
+
+# Partitions:
+
+# Progress Date:
+
+
 import asyncio
 import sys
 
