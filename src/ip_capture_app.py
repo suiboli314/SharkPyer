@@ -184,22 +184,13 @@ class LongRunningTask(QThread):
     def __init__(self, interface):
         super().__init__()
         self.interface = interface
+        self.local_ip = get_local_ip_address()
+        self.lookup_pid = get_pid("WeChat")
+        self.target_ports, self.target_ip  = get_used_port_by_pid(self.lookup_pid)
+
 
     # Run method for the thread
     def run(self):
-        # Function to obtain local IP address
-        def get_local_ip_address():
-            try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-                s.connect(("8.8.8.8", 80))
-                local_ip_address = s.getsockname()[0]
-                s.close()
-                return local_ip_address
-            except Exception as e:
-                return str(e)
-
-        local_ip = get_local_ip_address()
-
         # live capture network flow
         capture = pyshark.LiveCapture(interface=self.interface)
 
@@ -208,17 +199,51 @@ class LongRunningTask(QThread):
         count = 0
         # capture packets
         for packet in capture.sniff_continuously():
-            if "UDP" in packet and "02:00:48" in packet["UDP"].payload and packet["IP"].src == local_ip:
+            # print(packet)
+            if "UDP" in packet and "02:00:48" in packet["UDP"].payload and packet["IP"].src == self.local_ip:
                 # print(packet["IP"].dst)
                 dst = packet["IP"].dst
-                break
+                self.lookup(dst)
+                # break
 
+            try:
+                # Check if the packet contains IP layer
+                if 'IP' in packet:
+                    src_ip = packet.ip.src
+                    dst_ip = packet.ip.dst
+
+                    # Implement your rule here
+                    if src_ip == self.local_ip:
+                        # Print or process packet information
+                        if int(packet[packet.transport_layer].dstport) in self.target_ports\
+                                or dst_ip in self.target_ip:
+                            self.lookup(dst_ip)
+                            print(dst_ip)
+                            print(packet[packet.transport_layer])
+                            # break
+            except AttributeError:
+                # This handles packets that might not have IP layer or other exceptions
+                pass
+
+    def lookup(self, ip):
         # URL for location 
-        url = f"http://ip-api.com/json/{dst}"
+        url = f"http://ip-api.com/json/{ip}"
 
         # send GET request to retrieve location
         response = requests.get(url)
         self.update_signal.emit(response)
+
+
+# Function to obtain local IP address
+def get_local_ip_address():
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        local_ip_address = s.getsockname()[0]
+        s.close()
+        return local_ip_address
+    except Exception as e:
+        return str(e)
 
 
 def get_pid(process_name):
@@ -232,23 +257,30 @@ def get_pid(process_name):
 
 def get_used_port_by_pid(pid):
     connections = psutil.net_connections()
-    ports = []
+    ports = set()
+    ips = set()
     for con in connections:
-        if con.raddr != tuple():
-            if con.pid in pid:
-                ports.append((con.raddr.port, con.status))
-
-        if con.laddr != tuple():
-            if con.pid in pid:
-                ports.append((con.laddr.port, con.status))
+        if con.pid in pid:
+            if con.raddr != tuple():
+                print("port:", con.raddr.port, "\tstatus:", con.status, "\tip:", con.raddr.ip)
+                if int(con.raddr.port) > 40000:
+                    ports.add(con.raddr.port)
+                ips.add(con.raddr.ip)
+            elif con.laddr != tuple():
+                print("port:", con.laddr.port, "\tstatus:", con.status, "\tip:", con.laddr.ip)
+                if int(con.laddr.port) > 40000:
+                    ports.add(con.laddr.port)
+                ips.add(con.laddr.ip)
+            else:
+                print("con:", con)
 
     print("port (", pid, "):", ports)
+    print("ips:", ips )
+
+    return ports, ips
 
 
 if __name__ == "__main__":
-    pid = get_pid("WeChat")
-    get_used_port_by_pid(pid)
-
     app = QApplication(sys.argv)
     window = NetworkInterfaceApp()
     window.show()
