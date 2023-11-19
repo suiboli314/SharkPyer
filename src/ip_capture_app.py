@@ -186,8 +186,7 @@ class LongRunningTask(QThread):
         self.interface = interface
         self.local_ip = get_local_ip_address()
         self.lookup_pid = get_pid("WeChat")
-        self.target_ports, self.target_ip  = get_used_port_by_pid(self.lookup_pid)
-
+        self.target_ports, self.target_ip = get_used_port_by_pid(self.lookup_pid, set(), set())
 
     # Run method for the thread
     def run(self):
@@ -215,15 +214,16 @@ class LongRunningTask(QThread):
                     # Implement your rule here
                     if src_ip == self.local_ip:
                         # Print or process packet information
-                        if int(packet[packet.transport_layer].dstport) in self.target_ports\
+                        if int(packet[packet.transport_layer].dstport) in self.target_ports \
                                 or dst_ip in self.target_ip:
                             self.lookup(dst_ip)
                             print(dst_ip)
-                            print(packet[packet.transport_layer])
+                            # print(packet[packet.transport_layer])
                             # break
             except AttributeError:
                 # This handles packets that might not have IP layer or other exceptions
                 pass
+            self.target_ports, self.target_ip = get_used_port_by_pid(self.lookup_pid, self.target_ports, self.target_ip)
 
     def lookup(self, ip):
         # URL for location 
@@ -255,27 +255,30 @@ def get_pid(process_name):
     return ret
 
 
-def get_used_port_by_pid(pid):
+def new_port_ip_rule(addr, ports, ips):
+    print("ip:", addr.ip, "\t ports:", ports, "\tips:", ips)
+    return addr.ip not in ips or addr.port not in ports
+
+
+def get_used_port_by_pid(pid, ports: set, ips: set):
     connections = psutil.net_connections()
-    ports = set()
-    ips = set()
     for con in connections:
         if con.pid in pid:
-            if con.raddr != tuple():
+            if con.raddr != tuple() and new_port_ip_rule(con.raddr, ports, ips):
                 print("port:", con.raddr.port, "\tstatus:", con.status, "\tip:", con.raddr.ip)
-                if int(con.raddr.port) > 40000:
+                if int(con.raddr.port) > 4000:
                     ports.add(con.raddr.port)
                 ips.add(con.raddr.ip)
-            elif con.laddr != tuple():
+            elif con.laddr != tuple() and new_port_ip_rule(con.laddr, ports, ips):
                 print("port:", con.laddr.port, "\tstatus:", con.status, "\tip:", con.laddr.ip)
-                if int(con.laddr.port) > 40000:
+                if int(con.laddr.port) > 4000:
                     ports.add(con.laddr.port)
                 ips.add(con.laddr.ip)
             else:
                 print("con:", con)
 
-    print("port (", pid, "):", ports)
-    print("ips:", ips )
+    # print("port (", pid, "):", ports)
+    # print("ips:", ips)
 
     return ports, ips
 
