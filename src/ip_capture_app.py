@@ -260,10 +260,13 @@ def new_port_ip_rule(addr, ports, ips):
 
 def fit_rule(addr, con, ports, ips):
     # print("port:", addr.port, "\tstatus:", con.status, "\tip:", addr.ip)
-    if int(addr.port) > 4000:
-        ports.add(addr.port)
-    if not addr.ip.startswith("10."):
-        ips.add(addr.ip)
+    port, ip = addr.port, addr.ip
+    if int(port) > 4000 and port not in ports:
+        ports.add(port)
+        print("port:", ports, "ips:", ips)
+    if not ip.startswith("10.") and not ip.startswith("0.") and ip not in ips:
+        ips.add(ip)
+        print("port:", ports, "ips:", ips)
 
 def get_used_port_by_pid(pid, ports: set, ips: set):
     connections = psutil.net_connections()
@@ -275,8 +278,6 @@ def get_used_port_by_pid(pid, ports: set, ips: set):
                 fit_rule(con.laddr, con, ports, ips)
             if con.laddr == tuple() and con.raddr == tuple():
                 print("con: ", con)
-    # print("port (", pid, "):", ports)
-    # print("ips:", ips)
 
     return ports, ips
 
