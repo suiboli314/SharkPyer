@@ -164,7 +164,7 @@ class NetworkInterfaceApp(QMainWindow):
                     self.table_widget.setItem(row, 1, value_item)
 
                 self.table_widget.resizeColumnsToContents()
-                self.table_widget.res
+                self.table_widget.resizeRowsToContents()
 
                 # Display error message in table
                 for row, (key, value) in enumerate(info_data):
