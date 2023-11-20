@@ -16,6 +16,8 @@ import requests
 from scapy.all import *
 from scapy.layers.inet6 import *
 from scapy import packet as pa
+import asyncio
+
 
 
 # Define the main class for the Network Interface Application
@@ -195,6 +197,8 @@ class LongRunningTask(QThread):
     # Run method for the thread
     def run(self):
         # live capture network flow
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         capture = pyshark.LiveCapture(interface=self.interface)
 
         capture.set_debug()
