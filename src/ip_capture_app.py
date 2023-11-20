@@ -1,6 +1,7 @@
 import asyncio
 import sys
 
+import scapy.all
 # Import necessary PyQt6 modules
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont
@@ -12,6 +13,9 @@ import pyshark
 import psutil
 import socket
 import requests
+from scapy.all import *
+from scapy.layers.inet6 import *
+from scapy import packet as pa
 
 
 # Define the main class for the Network Interface Application
@@ -218,6 +222,9 @@ class LongRunningTask(QThread):
                                 or dst_ip in self.target_ip:
                             self.lookup(dst_ip)
                             print(dst_ip)
+
+                            p = PacketProcessor(self.target_ports, self.target_ip)
+                            sniff(filter="ip", prn=p.packet_sniffer)
                             # print(packet[packet.transport_layer])
                             # break
             except AttributeError:
@@ -233,6 +240,51 @@ class LongRunningTask(QThread):
         response = requests.get(url)
         self.update_signal.emit(response)
 
+
+class PacketProcessor:
+    def __init__(self, ports, ip):
+        self.ports: set = ports
+        self.ips: set = ip
+
+    def modify_and_send_packet(self, packet: pa, new_src_ip):
+        # Make a copy of the original packet
+        print(packet)
+        packet.show()
+        modified_packet: pa = packet.copy()
+
+        # Modify IPv4 packet
+        if IP in modified_packet:
+            modified_packet[IP].src = new_src_ip
+            if TCP in modified_packet or UDP in modified_packet:
+                del modified_packet[IP].chksum
+                del modified_packet[TCP].chksum
+
+        # Modify IPv6 packet
+        elif IPv6 in modified_packet:
+            modified_packet[IPv6].src = new_src_ip
+            # IPv6 packets do not use header checksums like IPv4
+
+        # Reconstruct the packet and send
+        modified_packet = modified_packet.__class__(bytes(modified_packet))
+        modified_packet.show()
+        print(modified_packet)
+        # send(modified_packet)
+
+    def modify(self):
+        new_src_ip = "8.8.8.8"  # Set your new source IP
+        self.modify_and_send_packet(packet, new_src_ip)
+
+    def packet_sniffer(self, packet: pa):
+
+        # Example condition: TCP packet on port 80 (for both IPv4 and IPv6)
+        transport = [TCP, UDP]
+        for t in transport:
+            if (t in packet) and (packet[t].dport in self.ports or packet[t].sport in self.ports):
+                self.modify()
+                print("GET\t", packet[t])
+        if IP in packet and packet[IP].dst in self.ips:
+            self.modify()
+            print("GET\t",packet[IP])
 
 # Function to obtain local IP address
 def get_local_ip_address():
@@ -258,6 +310,7 @@ def get_pid(process_name):
 def new_port_ip_rule(addr, ports, ips):
     return addr.ip not in ips or addr.port not in ports
 
+
 def fit_rule(addr, con, ports, ips):
     # print("port:", addr.port, "\tstatus:", con.status, "\tip:", addr.ip)
     port, ip = addr.port, addr.ip
@@ -267,6 +320,7 @@ def fit_rule(addr, con, ports, ips):
     if not ip.startswith("10.") and not ip.startswith("0.") and ip not in ips:
         ips.add(ip)
         print("port:", ports, "ips:", ips)
+
 
 def get_used_port_by_pid(pid, ports: set, ips: set):
     connections = psutil.net_connections()
