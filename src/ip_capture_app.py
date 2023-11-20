@@ -15,9 +15,7 @@ import socket
 import requests
 from scapy.all import *
 from scapy.layers.inet6 import *
-from scapy import packet as pa
 import asyncio
-
 
 
 # Define the main class for the Network Interface Application
@@ -250,18 +248,18 @@ class PacketProcessor:
         self.ports: set = ports
         self.ips: set = ip
 
-    def modify_and_send_packet(self, packet: pa, new_src_ip):
+    def modify_and_send_packet(self, packet, new_src_ip):
         # Make a copy of the original packet
-        print(packet)
-        packet.show()
-        modified_packet: pa = packet.copy()
+        modified_packet = packet.copy()
 
         # Modify IPv4 packet
         if IP in modified_packet:
             modified_packet[IP].src = new_src_ip
-            if TCP in modified_packet or UDP in modified_packet:
-                del modified_packet[IP].chksum
-                del modified_packet[TCP].chksum
+            transport = [TCP, UDP]
+            for t in transport:
+                if t in modified_packet:
+                    del modified_packet[IP].chksum
+                    del modified_packet[t].chksum
 
         # Modify IPv6 packet
         elif IPv6 in modified_packet:
@@ -270,25 +268,25 @@ class PacketProcessor:
 
         # Reconstruct the packet and send
         modified_packet = modified_packet.__class__(bytes(modified_packet))
-        modified_packet.show()
-        print(modified_packet)
+        print("modified", modified_packet.summary(), "\noriginal: ", packet.summary())
         # send(modified_packet)
 
-    def modify(self):
+    def modify(self, packet):
         new_src_ip = "8.8.8.8"  # Set your new source IP
         self.modify_and_send_packet(packet, new_src_ip)
 
-    def packet_sniffer(self, packet: pa):
+    def packet_sniffer(self, packet):
 
         # Example condition: TCP packet on port 80 (for both IPv4 and IPv6)
         transport = [TCP, UDP]
         for t in transport:
             if (t in packet) and (packet[t].dport in self.ports or packet[t].sport in self.ports):
-                self.modify()
+                self.modify(packet)
                 print("GET\t", packet[t])
         if IP in packet and packet[IP].dst in self.ips:
-            self.modify()
-            print("GET\t",packet[IP])
+            self.modify(packet)
+            print("GET\t", packet[IP])
+
 
 # Function to obtain local IP address
 def get_local_ip_address():
