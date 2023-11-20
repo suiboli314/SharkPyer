@@ -1,26 +1,7 @@
-# Project: IP Mask
-
-# Team 4 Members: Dongxin Zhang, Chenjie Wu, Mingfu Huang, Junhao Hao
-
-# Introduction:
-# This program aims to enhance user privacy and security by intercepting server responses and dynamically altering the originating IP address before it leaves the local machine. 
-# By doing so, the program ensures that sensitive information about the user's actual IP address is concealed from external entities, providing anonymity and safeguarding against potential online threats. 
-# The implementation of this IP masking mechanism is designed to be efficient, seamless, and responsive, ensuring that users can browse the internet or interact with online services while keeping their true IP address hidden from prying eyes. 
-
-# Partitions:
-# Analysis - Everyone
-# Algorithm Design - Dongxin Zhang, Chenjie Wu
-# Back-End Coding - Mingfu Huang, Junhao Hao
-# Front-End Design - Mingfu Huang, Junhao Hao
-# Front-End Coding - Dongxin Zhang, Chenjie Wu
-# Debug - Everyone
-
-# Progress and Commits
-# BrainStorm: 11/01 - 11/04
-# UI Design: 11/05 - 11/09
-# Database Schema: 11/08 - 11/12
-# Implement alogrithm to analyze traffic patterns: 11/13 - 11/19
-
+'''
+Project: IP Mask
+Team 4 Members: Dongxin Zhang, Chenjie Wu, Mingfu Huang, Junhao Hao
+'''
 
 import pyshark
 import psutil
