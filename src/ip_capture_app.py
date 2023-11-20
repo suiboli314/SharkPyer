@@ -16,11 +16,9 @@ from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QCh
 # Other required libraries
 import pyshark
 import psutil
-import socket
 import requests
 from scapy.all import *
 from scapy.layers.inet6 import *
-import asyncio
 
 
 # Define the main class for the Network Interface Application
