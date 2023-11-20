@@ -9,7 +9,7 @@ import sys
 import scapy.all
 # Import necessary PyQt6 modules
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QIcon
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QCheckBox, QPushButton, QStackedWidget, \
     QLabel, QTableWidget, QTableWidgetItem, QSizePolicy, QHeaderView, QComboBox, QFrame
 
@@ -37,92 +37,165 @@ class NetworkInterfaceApp(QMainWindow):
     # Function to initialize the user interface
     def init_ui(self):
         self.setWindowTitle("Select Network Interface")
-
+        self.setGeometry(100, 100, 600, 400)  # Set initial size
+        self.setWindowIcon(QIcon('path_to_icon.png'))  # Set window icon
         # Create a stacked widget to manage pages
 
-        self.stacked_widget = QStackedWidget(self)
+        # Styling
+        self.setStyleSheet("""
+            QMainWindow {
+                background-color: #ffffff;
+            }
+            QLabel, QComboBox, QPushButton {
+                font-size: 14px;
+                color: #000103;
+            }
+            QPushButton {
+                background-color: #62baf5;
+                border-radius: 5px;
+                padding: 5px;
+                color: #ffffff;
+                font-weight: bold;
+            }
+            QPushButton:hover {
+                background-color: #2980b9;
+            }
+            QTableWidget {
+                gridline-color: #7f8c8d;
+            }
+            QHeaderView::section {
+                background-color: #62baf5;
+                padding: 4px;
+                border: 1px solid #7f8c8d;
+                font-size: 14px;
+                color: #ffffff;
+                font-weight: bold;
+            }
+        """)
 
-        # Create the first page (select network interface)
-        page1 = QWidget()
-        layout1 = QVBoxLayout(page1)
-        layout1.setContentsMargins(5, 5, 5, 5)  # Set layout margins
-        layout1.setSpacing(0)  # Set layout spacing
-
-        # Add a label for selecting network interfaces
-        label = QLabel("Select network interface:", self)
-        label.setStyleSheet("QComboBox { border: 2px solid blue; }")
-
-        # label.setAlignment(Qt.AlignCenter)  # 设置标签文本居中对齐
-        # label.setFont(QFont('Arial', 10))  # 设置标签的字体和字体大小
-        # label.setMargin(5)  # 设置标签的边距，可以根据需要调整
-        layout1.addWidget(label)
-
-        # Obtain a list of network interfaces and create a dropdown menu
-        network_interfaces = self.get_network_interfaces()
-        self.combo_box = QComboBox(self)
-        self.combo_box.addItems(network_interfaces)
-        layout1.addWidget(self.combo_box)
-
-        # Add a confirm button
-        confirm_button = QPushButton("Confirm", self)
-        confirm_button.clicked.connect(self.next_page)
-        layout1.addWidget(confirm_button)
-
-        # Configure layout and add to the stacked widget
-        page1.setLayout(layout1)
-        self.stacked_widget.addWidget(page1)
-
-        # Create the second page (display selected results)
-        page2 = QWidget()
-        layout2 = QVBoxLayout()
-        # layout2.setContentsMargins(0, 0, 0, 0)  # 
-        # layout2.setSpacing(0)  
-        self.selection_label = QLabel("The Network Interface You Selected", self)
-        layout2.addWidget(self.selection_label)
-        page2.setLayout(layout2)
-        self.stacked_widget.addWidget(page2)
-
-        # self.info_label = QLabel("", self)
-        # layout2.addWidget(self.info_label)
-
-        # Create a table widget for displaying information
-        self.table_widget = QTableWidget(self)
-        self.table_widget.setColumnCount(2)  # 设置表格列数
-
-        # Configure table properties
-
-        self.table_widget.setFrameStyle(QFrame.Shape.NoFrame)
-        self.table_widget.setContentsMargins(0, 0, 0, 0)
-        sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
-        sizePolicy.setHorizontalStretch(1)
-        sizePolicy.setVerticalStretch(0)
-        self.table_widget.setSizePolicy(sizePolicy)
-        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)  # 设置列自适应宽度
-        self.table_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)  # 设置行高自适应内容
-
-        layout2.addWidget(self.table_widget)
-
-        # Add a button to initiate background task
-        get_info_button = QPushButton("Get Information", self)
-        get_info_button.clicked.connect(self.start_background_task)
-        layout2.addWidget(get_info_button)
-
-        # Set the current page in the stacked widget
-        self.stacked_widget.setCurrentIndex(0)
-
-        # Set the main window layout
+        # Main layout
         layout = QVBoxLayout()
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.setSpacing(0)
-        layout.addWidget(self.stacked_widget)
-        central_widget = QWidget(parent=None)
-        central_widget.setLayout(layout)
-        self.setCentralWidget(central_widget)
+        widget = QWidget()
+        widget.setLayout(layout)
+        self.setCentralWidget(widget)
+
+        # Network Interface Selection
+        label = QLabel('Select network interface:')
+        # label.setAlignment(Qt.AlignCenter)
+        label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.combo_box = QComboBox()
+        self.combo_box.addItems(self.get_network_interfaces())
+
+        confirm_button = QPushButton('Confirm')
+        confirm_button.clicked.connect(self.display_selected_interface)
+
+        layout.addWidget(label)
+        layout.addWidget(self.combo_box)
+        layout.addWidget(confirm_button)
+
+        # Information Display
+        self.info_label = QLabel('Selected interface will be displayed here')
+        self.info_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        self.table_widget = QTableWidget()
+        self.table_widget.setColumnCount(2)
+        self.table_widget.setHorizontalHeaderLabels(['Content', 'Result'])
+        # self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
+        layout.addWidget(self.info_label)
+        layout.addWidget(self.table_widget)
+
+        # self.stacked_widget = QStackedWidget(self)
+
+        # # Create the first page (select network interface)
+        # page1 = QWidget()
+        # layout1 = QVBoxLayout(page1)
+        # layout1.setContentsMargins(5, 5, 5, 5)  # Set layout margins
+        # layout1.setSpacing(0)  # Set layout spacing
+        #
+        # # Add a label for selecting network interfaces
+        # label = QLabel("Select network interface:", self)
+        # label.setStyleSheet("QComboBox { border: 2px solid blue; }")
+        #
+        # # label.setAlignment(Qt.AlignCenter)  # 设置标签文本居中对齐
+        # # label.setFont(QFont('Arial', 10))  # 设置标签的字体和字体大小
+        # # label.setMargin(5)  # 设置标签的边距，可以根据需要调整
+        # layout1.addWidget(label)
+        #
+        # # Obtain a list of network interfaces and create a dropdown menu
+        # network_interfaces = self.get_network_interfaces()
+        # self.combo_box = QComboBox(self)
+        # self.combo_box.addItems(network_interfaces)
+        # layout1.addWidget(self.combo_box)
+        #
+        # # Add a confirm button
+        # confirm_button = QPushButton("Confirm", self)
+        # confirm_button.clicked.connect(self.next_page)
+        # layout1.addWidget(confirm_button)
+        #
+        # # Configure layout and add to the stacked widget
+        # page1.setLayout(layout1)
+        # self.stacked_widget.addWidget(page1)
+        #
+        # # Create the second page (display selected results)
+        # page2 = QWidget()
+        # layout2 = QVBoxLayout()
+        # # layout2.setContentsMargins(0, 0, 0, 0)  #
+        # # layout2.setSpacing(0)
+        # self.selection_label = QLabel("The Network Interface You Selected", self)
+        # layout2.addWidget(self.selection_label)
+        # page2.setLayout(layout2)
+        # self.stacked_widget.addWidget(page2)
+        #
+        # # self.info_label = QLabel("", self)
+        # # layout2.addWidget(self.info_label)
+        #
+        # # Create a table widget for displaying information
+        # self.table_widget = QTableWidget(self)
+        # self.table_widget.setColumnCount(2)  # 设置表格列数
+        #
+        # # Configure table properties
+        #
+        # self.table_widget.setFrameStyle(QFrame.Shape.NoFrame)
+        # self.table_widget.setContentsMargins(0, 0, 0, 0)
+        # sizePolicy = QSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred)
+        # sizePolicy.setHorizontalStretch(1)
+        # sizePolicy.setVerticalStretch(0)
+        # self.table_widget.setSizePolicy(sizePolicy)
+        # self.table_widget.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)  # 设置列自适应宽度
+        # self.table_widget.verticalHeader().setSectionResizeMode(QHeaderView.ResizeMode.ResizeToContents)  # 设置行高自适应内容
+        #
+        # layout2.addWidget(self.table_widget)
+        #
+        # # Add a button to initiate background task
+        # get_info_button = QPushButton("Get Information", self)
+        # get_info_button.clicked.connect(self.start_background_task)
+        # layout2.addWidget(get_info_button)
+        #
+        # # Set the current page in the stacked widget
+        # self.stacked_widget.setCurrentIndex(0)
+        #
+        # # Set the main window layout
+        # layout = QVBoxLayout()
+        # layout.setContentsMargins(0, 0, 0, 0)
+        # layout.setSpacing(0)
+        # layout.addWidget(self.stacked_widget)
+        # central_widget = QWidget(parent=None)
+        # central_widget.setLayout(layout)
+        # self.setCentralWidget(central_widget)
 
     # Function to get a list of network interfaces using psutil
     def get_network_interfaces(self):
         network_interfaces = psutil.net_if_addrs()
         return list(network_interfaces.keys())
+
+    def display_selected_interface(self):
+        selected_interface = self.combo_box.currentText()
+        self.info_label.setText(f'Current Interface: {selected_interface}')
+        # self.get_information()
+        self.start_background_task()
 
     # Function to move to the next page and display selected interface
     def next_page(self):
@@ -156,6 +229,7 @@ class NetworkInterfaceApp(QMainWindow):
                 self.table_widget.clear()
                 self.table_widget.setRowCount(len(info_data))
                 self.table_widget.setColumnCount(2)
+                self.table_widget.setHorizontalHeaderLabels(['Content', 'Result'])
                 self.table_widget.setFrameShape(QFrame.Shape.NoFrame)
                 self.table_widget.setContentsMargins(0, 0, 0, 0)
 
@@ -165,8 +239,8 @@ class NetworkInterfaceApp(QMainWindow):
                     self.table_widget.setItem(row, 0, key_item)
                     self.table_widget.setItem(row, 1, value_item)
 
-                self.table_widget.resizeColumnsToContents()
-                self.table_widget.resizeRowsToContents()
+                # self.table_widget.resizeColumnsToContents()
+                # self.table_widget.resizeRowsToContents()
 
                 # Display error message in table
                 for row, (key, value) in enumerate(info_data):
