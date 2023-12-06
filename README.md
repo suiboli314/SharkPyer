@@ -21,10 +21,10 @@ It serves the following benefits:
 
 ## Partitions:
     Analysis - Everyone
-    Algorithm Design - Dongxin Zhang, Chenjie Wu
-    Back-End Coding - Mingfu Huang, Junhao Hao
-    Front-End Design - Mingfu Huang, Junhao Hao
-    Front-End Coding - Dongxin Zhang, Chenjie Wu
+    Algorithm Design - Chenjie Wu, Mingfu Huang
+    Back-End Coding - Mingfu Huang, Chenjie Wu
+    Front-End Design - Dongxin Zhang, Junhao Hao
+    Front-End Coding - Dongxin Zhang, Junhao Hao
     Debug - Everyone
 
 ## Progress Date:
