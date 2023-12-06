@@ -6,7 +6,6 @@
 ## Introduction:
 This program aims to enhance user privacy and security by intercepting server responses and dynamically altering the originating IP address before it leaves the local machine. By doing so, the program ensures that sensitive information about the user's actual IP address is concealed from external entities, providing anonymity and safeguarding against potential online threats. The implementation of this IP masking mechanism is designed to be efficient, seamless, and responsive, ensuring that users can browse the internet or interact with online services while keeping their true IP address hidden from prying eyes. 
 
-
 It serves the following benefits:
 - Better Privacy: Hides user IP addresses to keep personal information safe.
 - More Security: Protects against online threats targeting IP addresses.
@@ -16,6 +15,9 @@ It serves the following benefits:
 - Technological Innovation: Showcases the organization's tech-savvy approach.
 - Long-term Strategy: Prepares the organization for future cybersecurity challenges.
 - Improved Reputation: Shows a commitment to protecting user data. 
+
+## Run
+`sudo` or Administrator privilege is required now to scan all the PORTs and IPs used by PID
 
 ## Partitions:
     Analysis - Everyone
