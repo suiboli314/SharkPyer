@@ -3,13 +3,9 @@ Project: IP Mask
 Team 4 Members: Dongxin Zhang, Chenjie Wu, Mingfu Huang, Junhao Hao
 '''
 
-import asyncio
-import sys
-
-import scapy.all
 # Import necessary PyQt6 modules
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
-from PyQt6.QtGui import QFont, QIcon
+from PyQt6.QtGui import QFont, QIcon, QColor, QPixmap
 from PyQt6.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget, QCheckBox, QPushButton, QStackedWidget, \
     QLabel, QTableWidget, QTableWidgetItem, QSizePolicy, QHeaderView, QComboBox, QFrame
 
@@ -34,40 +30,88 @@ class NetworkInterfaceApp(QMainWindow):
 
     # Function to initialize the user interface
     def init_ui(self):
-        self.setWindowTitle("Select Network Interface")
+        self.setWindowTitle("IP Mask")
         self.setGeometry(100, 100, 600, 400)  # Set initial size
         self.setWindowIcon(QIcon('path_to_icon.png'))  # Set window icon
         # Create a stacked widget to manage pages
 
         # Styling
+        # self.setStyleSheet("""
+        #     QMainWindow {
+        #         background-color: #ffffff;
+        #     }
+        #     QLabel, QComboBox, QPushButton {
+        #         font-size: 14px;
+        #         color: #000103;
+        #     }
+        #     QPushButton {
+        #         background-color: #62baf5;
+        #         border-radius: 5px;
+        #         padding: 5px;
+        #         color: #ffffff;
+        #         font-weight: bold;
+        #     }
+        #     QPushButton:hover {
+        #         background-color: #2980b9;
+        #     }
+        #     QTableWidget {
+        #         gridline-color: #7f8c8d;
+        #     }
+        #     QHeaderView::section {
+        #         background-color: #62baf5;
+        #         padding: 4px;
+        #         border: 1px solid #7f8c8d;
+        #         font-size: 14px;
+        #         color: #ffffff;
+        #         font-weight: bold;
+        #     }
+        # """)
+
+        # 使用更现代的字体和配色方案
         self.setStyleSheet("""
             QMainWindow {
-                background-color: #ffffff;
+                background-color: #f2f2f2; 
             }
             QLabel, QComboBox, QPushButton {
+                font-family: 'Arial', sans-serif; 
                 font-size: 14px;
-                color: #000103;
+                color: #333333;
             }
             QPushButton {
-                background-color: #62baf5;
-                border-radius: 5px;
-                padding: 5px;
-                color: #ffffff;
-                font-weight: bold;
+                background-color: #4285f4; 
+                border-radius: 4px; 
+                padding: 10px;
+                color: #ffffff; 
+                font-weight: bold; 
             }
             QPushButton:hover {
-                background-color: #2980b9;
+                background-color: #357ae8; 
             }
             QTableWidget {
-                gridline-color: #7f8c8d;
+                border: none; 
+                selection-background-color: #4285f4; 
             }
             QHeaderView::section {
-                background-color: #62baf5;
-                padding: 4px;
-                border: 1px solid #7f8c8d;
+                background-color: #4285f4; 
+                padding: 5px;
+                border: 1px solid #e0e0e0; 
                 font-size: 14px;
-                color: #ffffff;
-                font-weight: bold;
+                color: #ffffff; 
+                font-weight: bold; 
+            }
+            QComboBox {
+                border: 1px solid #e0e0e0; 
+                border-radius: 4px; 
+            }
+            QComboBox:hover {
+                border-color: #4285f4; 
+            }
+            QComboBox::drop-down {
+                border: none; 
+            }
+            QTableWidget {
+                selection-background-color: #4285f4;
+                selection-color: #ffffff;
             }
         """)
 
@@ -85,12 +129,12 @@ class NetworkInterfaceApp(QMainWindow):
         self.combo_box = QComboBox()
         self.combo_box.addItems(self.get_network_interfaces())
 
-        confirm_button = QPushButton('Confirm')
-        confirm_button.clicked.connect(self.display_selected_interface)
+        self.confirm_button = QPushButton('Confirm')
+        self.confirm_button.clicked.connect(self.display_selected_interface)
 
         layout.addWidget(label)
         layout.addWidget(self.combo_box)
-        layout.addWidget(confirm_button)
+        layout.addWidget(self.confirm_button)
 
         # Information Display
         self.info_label = QLabel('Selected interface will be displayed here')
@@ -104,6 +148,23 @@ class NetworkInterfaceApp(QMainWindow):
 
         layout.addWidget(self.info_label)
         layout.addWidget(self.table_widget)
+
+        # confirm_button.setStyleSheet("background-color: #34a853;")  # 绿色按钮表示确认动作
+        self.confirm_button.setStyleSheet("""
+            QPushButton {
+                background-color: #4CAF50; 
+                color: white; 
+                border-radius: 4px; 
+                padding: 5px; 
+                border: none; 
+            }
+            QPushButton:hover {
+                background-color: #45A049; 
+            }
+            QPushButton:pressed {
+                background-color: #397D39; 
+            }
+        """)
 
         # self.stacked_widget = QStackedWidget(self)
 
@@ -190,6 +251,24 @@ class NetworkInterfaceApp(QMainWindow):
         return list(network_interfaces.keys())
 
     def display_selected_interface(self):
+
+        self.confirm_button.setStyleSheet("background-color: #FF0000; color: white;")
+        self.confirm_button.setText("CONFIRMED")
+        self.combo_box.setEnabled(False)
+        self.combo_box.setStyleSheet("""
+                    QComboBox {
+                        background-color: #e0e0e0; /* 浅灰色背景 */
+                        color: #a0a0a0; /* 淡灰色文字 */
+                    }
+                    QComboBox::drop-down {
+                        background: transparent;
+                    }
+                    QComboBox::down-arrow {
+                        image: none;
+                    }
+                """)
+
+
         selected_interface = self.combo_box.currentText()
         self.info_label.setText(f'Current Interface: {selected_interface}')
         # self.get_information()
@@ -209,13 +288,14 @@ class NetworkInterfaceApp(QMainWindow):
             self.task.start()
 
     # Function to handle the response and populate the table widget
-    def print_info(self, response):
+    def print_info(self, response, App):
         # Handle different response scenarios
         if response.status_code == 200:
             data = response.json()
             if data["status"] == "success":
                 # Prepare information data
                 info_data = [
+                    ("App", App),
                     ("IP Address", data['query']),
                     ("Location", data['city']),
                     ("Region", data['regionName']),
@@ -246,11 +326,11 @@ class NetworkInterfaceApp(QMainWindow):
                     value_item = QTableWidgetItem(value)
                     self.table_widget.setItem(row, 0, key_item)
                     self.table_widget.setItem(row, 1, value_item)
-            else:
+            # else:
                 # Display error message in table
-                self.table_widget.clear()
-                self.table_widget.setRowCount(1)
-                self.table_widget.setItem(0, 0, QTableWidgetItem("Unable to fetch location information"))
+                # self.table_widget.clear()
+                # self.table_widget.setRowCount(1)
+                # self.table_widget.setItem(0, 0, QTableWidgetItem("Unable to fetch location information"))
         else:
             # Display error message in table
             self.table_widget.clear()
@@ -260,7 +340,7 @@ class NetworkInterfaceApp(QMainWindow):
 
 # Class for a long-running task in a separate thread
 class LongRunningTask(QThread):
-    update_signal = pyqtSignal(requests.models.Response)
+    update_signal = pyqtSignal(requests.models.Response, str)
 
     def __init__(self, interface):
         super().__init__()
@@ -285,7 +365,7 @@ class LongRunningTask(QThread):
             if "UDP" in packet and "02:00:48" in packet["UDP"].payload and packet["IP"].src == self.local_ip:
                 # print(packet["IP"].dst)
                 dst = packet["IP"].dst
-                self.lookup(dst)
+                self.lookup(dst, "QQ")
                 # break
 
             try:
@@ -299,7 +379,7 @@ class LongRunningTask(QThread):
                         # Print or process packet information
                         if int(packet[packet.transport_layer].dstport) in self.target_ports \
                                 or dst_ip in self.target_ip:
-                            self.lookup(dst_ip)
+                            self.lookup(dst_ip, "WeChat")
                             print(dst_ip)
 
                             p = PacketProcessor(self.target_ports, self.target_ip)
@@ -311,13 +391,14 @@ class LongRunningTask(QThread):
                 pass
             self.target_ports, self.target_ip = get_used_port_by_pid(self.lookup_pid, self.target_ports, self.target_ip)
 
-    def lookup(self, ip):
+    def lookup(self, ip, App):
         # URL for location 
         url = f"http://ip-api.com/json/{ip}"
 
         # send GET request to retrieve location
         response = requests.get(url)
-        self.update_signal.emit(response)
+        # print(response)
+        self.update_signal.emit(response, App)
 
 
 class PacketProcessor:
